@@ -191,6 +191,9 @@ def main():
 
     def compute_metrics(pred):
         pred_ids = pred.predictions
+        # Generation predictions may be a tuple (sequences, scores) in some transformers versions
+        if isinstance(pred_ids, tuple):
+            pred_ids = pred_ids[0]
         label_ids = pred.label_ids
         label_ids[label_ids == -100] = processor.tokenizer.pad_token_id
         pred_str = processor.tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
@@ -243,6 +246,7 @@ def main():
         eval_dataset=test,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
+        tokenizer=processor.tokenizer,
         processing_class=processor.feature_extractor,
     )
 
