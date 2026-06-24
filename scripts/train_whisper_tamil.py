@@ -284,7 +284,7 @@ def main():
         trainer.push_to_hub(
             dataset=dataset,
             language="ta",
-            model_name="Whisper Small Tamil (Saaras-style)",
+            model_name="Whisper Small Tamil (Kural)",
             finetuned_from=args.model_name,
             tasks="automatic-speech-recognition",
         )
