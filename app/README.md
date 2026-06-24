@@ -1,5 +1,5 @@
 ---
-title: Tamil Speech Tagger
+title: Kural
 emoji: 🎙️
 colorFrom: indigo
 colorTo: pink
@@ -10,9 +10,9 @@ pinned: false
 license: cc0-1.0
 ---
 
-# Tamil Speech → Transcript + Emotion/Style
+# Kural — Tamil Speech → Transcript + Emotion/Style
 
-Saaras-inspired pipeline for Tamil:
+Pipeline for Tamil:
 
 - **ASR** — fine-tuned Whisper (Common Voice Tamil) → Tamil transcript + timestamps
 - **Emotion & style tagging** — prosody-derived (pace / energy / pitch) → dubbing-ready JSON

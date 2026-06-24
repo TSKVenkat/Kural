@@ -1,8 +1,8 @@
-# Tamil Speech Tagger — Saaras-inspired multi-stage pipeline
+# Kural — multi-stage Tamil speech pipeline
 
 Fine-tune **Whisper** on **Common Voice Tamil** for ASR, then tag each clip with
 **emotion + speaking style** from prosody — producing **dubbing-ready annotations**
-for expressive TTS, mirroring stages of Sarvam's Saaras pipeline.
+for expressive TTS, mirroring stages of a production dubbing pipeline.
 
 ```
  Tamil audio ──▶ Whisper ASR ──▶ transcript (+ timestamps)

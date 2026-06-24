@@ -2,7 +2,7 @@
 // 1) Deploy app/ as a HF Space.  2) Put its id here ("username/space-name").
 import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 
-const SPACE_ID = "your-username/tamil-speech-tagger"; // <-- set this
+const SPACE_ID = "Venky0411/kural"; // <-- set to your deployed Space id
 
 const recBtn = document.getElementById("recBtn");
 const fileIn = document.getElementById("fileIn");
