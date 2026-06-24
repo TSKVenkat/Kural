@@ -246,7 +246,7 @@ def main():
         eval_dataset=test,
         data_collator=data_collator,
         compute_metrics=compute_metrics,
-        processing_class=processor.feature_extractor,
+        processing_class=processor,
     )
 
     # Train
