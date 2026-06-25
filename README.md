@@ -36,7 +36,8 @@ a Parquet mirror — the Mozilla HF datasets were retired in Oct 2025):
 | Path | What |
 |------|------|
 | `serve/` | **Primary web app** — FastAPI + faster-whisper (fast CPU ASR) + simple record/upload UI |
-| `notebooks/train_whisper_tamil_colab.ipynb` | Train on Colab GPU + `push_to_hub` |
+| `notebooks/train_whisper_tamil_colab.ipynb` | Train **ASR** on Colab GPU + `push_to_hub` |
+| `notebooks/train_emotion_whisper_colab.ipynb` | Train **emotion** classifier (Whisper encoder + head) on aggregated public datasets |
 | `scripts/train_whisper_tamil.py` | Same training loop as a CLI script |
 | `src/prosody.py` | Prosody → emotion/style (no training needed) |
 | `src/pipeline.py` | `transformers` ASR + emotion/style → JSON |
@@ -73,10 +74,14 @@ Secret / env var / prompt — never hard-coded.
 
 ## Notes & honesty
 
-- **ASR** is genuinely fine-tuned; **emotion** labels are a transparent prosody
-  heuristic (arousal/valence proxies), not a trained classifier — a weak label to
-  bootstrap expressive-TTS annotation. Upgrade path: train an emotion head on the
-  frozen Whisper encoder using pseudo-labels (emotion2vec) or the EmoTa dataset.
+- **ASR** is genuinely fine-tuned. **Emotion** has two implementations: the live
+  `serve/` app uses a transparent **prosody heuristic** (a weak label), while
+  `notebooks/train_emotion_whisper_colab.ipynb` trains a real **5-class classifier**
+  (`angry, fear, happy, neutral, sad`) on a frozen Whisper encoder + head. Since large
+  Tamil emotion data is scarce/gated (EmoTa needs approval), it aggregates public
+  ungated sets — English acted (RAVDESS, CREMA-D, TESS) for volume — and **fine-tunes +
+  tests on small public Tamil sets** for an honest Tamil score. Cross-lingual acoustic
+  transfer is imperfect; the Tamil test report makes the real number explicit.
 - Common Voice is **read speech** → note generalization to spontaneous/dubbing.
 - Speaker-independent eval (`client_id` grouping) avoids speaker leakage.
 - License: Common Voice is CC0; please cite Mozilla.
