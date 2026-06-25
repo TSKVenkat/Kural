@@ -20,44 +20,59 @@ Example output:
 }
 ```
 
+## Models
+
+Fine-tuned `openai/whisper-small` on Common Voice Tamil
+([`abar-uwc/tamil-common-voice_v21`](https://huggingface.co/datasets/abar-uwc/tamil-common-voice_v21),
+a Parquet mirror — the Mozilla HF datasets were retired in Oct 2025):
+
+| Model | WER ↓ | CER ↓ |
+|-------|------|------|
+| [`Venky0411/whisper-small-ta-saaras-v2`](https://huggingface.co/Venky0411/whisper-small-ta-saaras-v2) **(current)** | 35.5 | 5.9 |
+| [`Venky0411/whisper-small-ta-saaras`](https://huggingface.co/Venky0411/whisper-small-ta-saaras) (initial run) | 58.1 | 19.5 |
+
 ## Layout
 
 | Path | What |
 |------|------|
-| `notebooks/train_whisper_tamil_colab.ipynb` | **Train on Colab GPU + push to HF Hub** |
+| `serve/` | **Primary web app** — FastAPI + faster-whisper (fast CPU ASR) + simple record/upload UI |
+| `notebooks/train_whisper_tamil_colab.ipynb` | Train on Colab GPU + `push_to_hub` |
+| `scripts/train_whisper_tamil.py` | Same training loop as a CLI script |
 | `src/prosody.py` | Prosody → emotion/style (no training needed) |
-| `src/pipeline.py` | ASR + emotion/style → JSON |
-| `app/` | Gradio app → deploy as a **Hugging Face Space** (the website) |
-| `web/` | Standalone HTML/JS frontend that calls the Space |
-| `scripts/setup_env.sh` | Local env that avoids the full `/home` partition |
+| `src/pipeline.py` | `transformers` ASR + emotion/style → JSON |
+| `app/` | Alt deploy: Gradio app for a Hugging Face Space |
+| `web/` | Alt: standalone static frontend that calls a Space |
 
 ## Quickstart
 
-### 1. Train (Google Colab, free T4)
-Open `notebooks/train_whisper_tamil_colab.ipynb` in Colab → **Runtime → GPU**.
-Set `HF_USERNAME`, run all. It loads Common Voice Tamil, fine-tunes Whisper,
-reports **WER/CER** on a **speaker-independent** test split, and `push_to_hub`.
+### Run the web app (recommended)
 
-> Common Voice 17 is gated — open its
-> [HF dataset page](https://huggingface.co/datasets/mozilla-foundation/common_voice_17_0)
-> and click **Agree** once while logged in.
+Fast local inference via faster-whisper (CTranslate2 int8) — ~5 s/clip on CPU,
+no GPU needed. See [`serve/README.md`](serve/README.md) for detail.
 
-### 2. Deploy the website (Hugging Face Space)
-Create a **Gradio** Space, then copy `app/app.py`, `app/requirements.txt`,
-`app/README.md`, **and** `src/pipeline.py` + `src/prosody.py` into the Space repo
-root. Set Space variable `ASR_MODEL=your-username/whisper-small-ta-saaras`.
-
-### 3. (Optional) Standalone frontend
-Set `SPACE_ID` in `web/app.js`, then serve: `python3 -m http.server -d web 8000`.
-
-### 4. (Optional) Run locally
-No GPU + full `/home` here, so use a writable big partition:
 ```bash
-sudo mkdir -p /opt/$USER && sudo chown $USER /opt/$USER   # one-time, needs admin
-BASE=/opt/$USER ./scripts/setup_env.sh
+pip install -r serve/requirements.txt
+
+# one-time: convert the HF model to CTranslate2 int8
+ct2-transformers-converter --model Venky0411/whisper-small-ta-saaras-v2 \
+  --output_dir ct2-model --quantization int8
+
+# run (serves UI + /api/analyze on :7860)
+CT2_MODEL=ct2-model uvicorn server:app --app-dir serve --host 0.0.0.0 --port 7860
 ```
 
+Open <http://localhost:7860> → record or upload Tamil audio → transcript + emotion/style + JSON.
+
+### Train (Google Colab, free T4)
+
+Open `notebooks/train_whisper_tamil_colab.ipynb` in Colab → **Runtime → GPU**, **Run all**.
+It loads Common Voice Tamil, fine-tunes Whisper, reports **WER/CER** on a
+**speaker-independent** split, and `push_to_hub`. Defaults use the Parquet dataset above
+(set `USE_FLEURS = True` for a smaller/faster run). The HF token is read from a Colab
+Secret / env var / prompt — never hard-coded.
+
 ## Notes & honesty
+
 - **ASR** is genuinely fine-tuned; **emotion** labels are a transparent prosody
   heuristic (arousal/valence proxies), not a trained classifier — a weak label to
   bootstrap expressive-TTS annotation. Upgrade path: train an emotion head on the
@@ -65,6 +80,7 @@ BASE=/opt/$USER ./scripts/setup_env.sh
 - Common Voice is **read speech** → note generalization to spontaneous/dubbing.
 - Speaker-independent eval (`client_id` grouping) avoids speaker leakage.
 - License: Common Voice is CC0; please cite Mozilla.
+
 ```
 @misc{commonvoice, title={Common Voice}, author={Mozilla Foundation}, howpublished={https://commonvoice.mozilla.org}}
 ```
