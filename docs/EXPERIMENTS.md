@@ -18,7 +18,12 @@ ASR worked because it was a **true full fine-tune** — every weight updated.
 |---|-------|------|-------|-----|----------|-------|
 | 1 | Frozen Whisper enc + **mean-pool** head (`WhisperForAudioClassification`) | EmoTa, 5-class | speaker-independent | 0.256 | 0.211 | ~chance; `fear` F1 = 0 |
 | 2 | Frozen Whisper enc + **attention-pool** + classifier | EmoTa, 4-class | speaker-independent | 0.380 | 0.302 | degenerate: `happy` F1 = 0, collapses to `sad` |
-| 3 | Frozen **Whisper** enc + attention-pool | **English** (CREMA-D) | speaker-independent | _pending_ | _pending_ | tests Whisper's strong-language features |
+| 3 | Frozen **Whisper** enc + attention-pool | **English** (CREMA-D, 4-class) | speaker-independent (held-out actors) | **0.872** | **0.872** | all classes strong; no collapse |
+
+> **Controlled finding (exp 2 vs 3): same architecture, 0.30 (Tamil) → 0.87 (English).**
+> The frozen-Whisper + attention design is *excellent* — the earlier Tamil failure was the
+> **language**, not the method. Whisper's frozen features encode emotion well for English
+> (its strongest language) but weakly for Tamil (Whisper barely models Tamil acoustics).
 
 Reference point: the **EmoTa authors** report **F1 ≈ 0.90** using **XGBoost / Random Forest
 on hand-crafted acoustic features** — not deep nets. ([paper](https://aclanthology.org/2025.chipsal-1.19/))
@@ -52,11 +57,18 @@ on hand-crafted acoustic features** — not deep nets. ([paper](https://aclantho
    encode prosody/affect; HuBERT especially strong *when frozen*. `superb/hubert-base-superb-er`
    is already emotion-tuned. ([benchmark](https://arxiv.org/abs/2111.02735))
 
-## Paths forward (ranked)
-1. **XGBoost on eGeMAPS features** — proven ~0.90 on EmoTa, data-efficient, no GPU. Best ROI.
-2. **Frozen HuBERT + attention pooling** — keeps the "freeze encoder" design, much better features.
-3. **Frozen Whisper + attention on English** (exp 3) — fair test of Whisper's best language.
-4. **Unfreeze the Whisper encoder** — higher ceiling but risks overfit on small data.
+## Paths forward (ranked) — updated after exp 3
+
+The architecture is validated (0.87 on English). For **Tamil**, keep the *exact same*
+frozen-encoder + attention-pooling head, but **swap Whisper for a backbone that actually
+models Tamil**:
+1. **Frozen multilingual/Indic backbone + attention head** (recommended) — `facebook/wav2vec2-xls-r-300m`
+   (128 langs incl. Tamil) or **AI4Bharat IndicWav2Vec** (Indic-specific). Self-supervised
+   on real Tamil audio → strong frozen Tamil features. Should bring Tamil close to the English number.
+2. **XGBoost on eGeMAPS features** — language-agnostic acoustic features; EmoTa authors hit ~0.90.
+3. **Unfreeze the Whisper encoder on Tamil** — adapts the weak Tamil features, but risks overfit on ~750 clips.
+
+Whisper stays the right choice for **ASR**; it's just the wrong frozen feature extractor for **Tamil emotion**.
 
 ## Dataset notes (gotchas we hit)
 - **EmoTa / TamilSER-DB** — 936 clips, 22 speakers, 5 emotions (`ang/fea/hap/neu/sad`),
