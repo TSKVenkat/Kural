@@ -37,7 +37,9 @@ a Parquet mirror — the Mozilla HF datasets were retired in Oct 2025):
 |------|------|
 | `serve/` | **Primary web app** — FastAPI + faster-whisper (fast CPU ASR) + simple record/upload UI |
 | `notebooks/train_whisper_tamil_colab.ipynb` | Train **ASR** on Colab GPU + `push_to_hub` |
-| `notebooks/train_emotion_whisper_colab.ipynb` | Train **emotion** classifier (Whisper encoder + head) on aggregated public datasets |
+| `notebooks/train_emotion_whisper_colab.ipynb` | Train **Tamil emotion** (frozen Whisper + attention pooling, EmoTa) |
+| `notebooks/train_emotion_english_whisper.ipynb` | Train **English emotion** (same design, CREMA-D, speaker-independent) |
+| `docs/EXPERIMENTS.md` | **Experiments, results & learnings** (what worked, what didn't, why) |
 | `scripts/train_whisper_tamil.py` | Same training loop as a CLI script |
 | `src/prosody.py` | Prosody → emotion/style (no training needed) |
 | `src/pipeline.py` | `transformers` ASR + emotion/style → JSON |
